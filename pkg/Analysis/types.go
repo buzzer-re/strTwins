@@ -16,3 +16,31 @@ type Reference struct {
 	FcnName string `json:"fcn_name"`
 	Refname string `json:"refname"`
 }
+
+// r2 disasm, pdj
+type Instruction struct {
+	Offset   int    `json:"offset"`
+	Ptr      int    `json:"ptr"`
+	Val      int    `json:"val"`
+	Esil     string `json:"esil"`
+	Refptr   bool   `json:"refptr"`
+	FcnAddr  int    `json:"fcn_addr"`
+	FcnLast  int    `json:"fcn_last"`
+	Size     int    `json:"size"`
+	Opcode   string `json:"opcode"`
+	Disasm   string `json:"disasm"`
+	Bytes    string `json:"bytes"`
+	Family   string `json:"family"`
+	Type     string `json:"type"`
+	Reloc    bool   `json:"reloc"`
+	TypeNum  int    `json:"type_num"`
+	Type2Num int    `json:"type2_num"`
+	Refs     []struct {
+		Addr int    `json:"addr"`
+		Type string `json:"type"`
+	} `json:"refs"`
+	Xrefs []struct {
+		Addr int    `json:"addr"`
+		Type string `json:"type"`
+	} `json:"xrefs"`
+}

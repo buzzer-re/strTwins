@@ -6,15 +6,17 @@ import (
 	"fmt"
 
 	"github.com/radareorg/r2pipe-go"
+	"gopkg.in/yaml.v2"
 )
 
 // A struct that will hold the pipe between r2
 // and processed information about the executable
 type Binary struct {
-	filename   string
-	path       string
-	pipe       *r2pipe.Pipe
-	stringRefs []StringReference
+	filename     string
+	path         string
+	pipe         *r2pipe.Pipe
+	stringRefs   []StringReference
+	OutputFormat string
 }
 
 // Create a new Binary struct
@@ -58,11 +60,12 @@ func (bin *Binary) DeepReferenceAnalysis() (err error) {
 			codeReferences := []BasicInstruction{}
 
 			for _, reference := range references {
-				if reference.Type == "STRING" {
+				if reference.Type != "CODE" && reference.Opcode != "invalid" {
 					codeReferences = append(codeReferences, BasicInstruction{
-						Offset:      reference.From,
-						Instruction: reference.Opcode,
-						FuncOffset:  reference.FcnAddr,
+						Offset:        reference.From,
+						ContextDisasm: reference.Opcode,
+						FuncOffset:    reference.FcnAddr,
+						Disasm:        bin.GetDisasmAt(reference.From),
 					})
 				}
 			}
@@ -80,9 +83,31 @@ func (bin *Binary) DeepReferenceAnalysis() (err error) {
 	return
 }
 
+// Disassemble one instruction at a given address
+func (bin *Binary) GetDisasmAt(address uint64) (disasm string) {
+	inst := Instruction{}
+	err := bin.pipe.CmdjfStruct("pdj 1 @ %d ~{0}", &inst, address)
+
+	if err == nil {
+		return inst.Opcode
+	}
+
+	return
+
+}
+
 func (bin *Binary) String() (out string) {
-	yamlBytes, _ := json.Marshal(bin.stringRefs)
-	out = string(yamlBytes)
+	switch bin.OutputFormat {
+	case "json":
+		bytes, _ := json.Marshal(bin.stringRefs)
+		out = string(bytes)
+	case "yaml":
+		bytes, _ := yaml.Marshal(bin.stringRefs)
+		out = string(bytes)
+
+		// TODO: yara and text
+
+	}
 
 	return
 }

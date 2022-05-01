@@ -1,9 +1,10 @@
 package analysis
 
 type BasicInstruction struct {
-	Instruction string
-	Offset      uint64
-	FuncOffset  uint64
+	ContextDisasm string
+	Disasm        string
+	Offset        uint64
+	FuncOffset    uint64
 }
 
 type StringReference struct {
