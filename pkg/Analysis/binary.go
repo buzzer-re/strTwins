@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -11,10 +10,12 @@ import (
 // A struct that will hold the pipe between r2
 // and processed information about the executable
 type Binary struct {
-	filename   string
-	path       string
-	pipe       *r2pipe.Pipe
-	stringRefs []StringReference
+	filename     string
+	path         string
+	filehash     string
+	pipe         *r2pipe.Pipe
+	strTable     GlobalStrTable
+	OutputFormat string
 }
 
 // Create a new Binary struct
@@ -22,14 +23,17 @@ func NewBinary(filename string) (binary *Binary, err error) {
 	binary = &Binary{
 		filename: filename,
 	}
+
+	// TODO: Fix NativePipe in concurrent execution
 	binary.pipe, err = r2pipe.NewPipe(filename)
+	binary.strTable = make(GlobalStrTable)
 
 	return
 }
 
-// Search all string references inside the code
+// Search all string references inside the code and
 // build a reference table and a string table
-func (bin *Binary) DeepReferenceAnalysis() (err error) {
+func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 	bin.pipe.Cmd("aaa")
 
 	// Get all string flags
@@ -43,8 +47,15 @@ func (bin *Binary) DeepReferenceAnalysis() (err error) {
 
 	// Get all references and string values
 	for _, strFlag := range strFlags {
+		wide := false
 		strValue, _ := bin.pipe.Cmdf("ps @ %s", strFlag.Name)
+		if len(strValue) == 1 {
+			// Wide
+			strValue, _ = bin.pipe.Cmdf("psw @ %s", strFlag.Name)
+			wide = true
+		}
 		references := []Reference{}
+		// rawJson, _ := bin.pipe.Cmdf("psj @ %s", strFlag.Name)
 
 		bin.pipe.CmdjfStruct("axtj @ %s", &references, strFlag.Name)
 
@@ -58,31 +69,49 @@ func (bin *Binary) DeepReferenceAnalysis() (err error) {
 			codeReferences := []BasicInstruction{}
 
 			for _, reference := range references {
-				if reference.Type == "STRING" {
+				if reference.Type != "CODE" && reference.Opcode != "invalid" {
 					codeReferences = append(codeReferences, BasicInstruction{
-						Offset:      reference.From,
-						Instruction: reference.Opcode,
-						FuncOffset:  reference.FcnAddr,
+						Filename:      bin.filename,
+						Offset:        reference.From,
+						ContextDisasm: reference.Opcode,
+						FuncOffset:    reference.FcnAddr,
+						Disasm:        bin.GetDisasmAt(reference.From),
 					})
 				}
 			}
 
 			if len(codeReferences) > 0 {
-				strRef := StringReference{
-					String:     strValue,
-					References: codeReferences,
+				bin.strTable[strValue] = RefCounter{
+					Instructions: codeReferences,
+					WideString:   wide,
 				}
-				bin.stringRefs = append(bin.stringRefs, strRef)
 			}
 		}
 
 	}
+
+	// Close pipe after analysis, useful when we are dealing with a lot of files
+	// to leave open a bunch of r2 sessions opened
+	if closePipe {
+		bin.pipe.Close()
+	}
+
 	return
 }
 
-func (bin *Binary) String() (out string) {
-	yamlBytes, _ := json.Marshal(bin.stringRefs)
-	out = string(yamlBytes)
+// Disassemble one instruction at a given address
+func (bin *Binary) GetDisasmAt(address uint64) (disasm string) {
+	inst := Instruction{}
+	err := bin.pipe.CmdjfStruct("pdj 1 @ %d ~{0}", &inst, address)
+
+	if err == nil {
+		return inst.Opcode
+	}
 
 	return
+
+}
+
+func (bin *Binary) String() string {
+	return bin.strTable.Format(bin.OutputFormat)
 }
