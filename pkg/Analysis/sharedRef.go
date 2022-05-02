@@ -1,11 +1,12 @@
 package analysis
 
 import (
+	"errors"
 	"sync"
 )
 
 // Concurrently call the DeepReference analysis in each binary
-func SharedDeepReferenceAnalysis(files []string) (globalStrTable GlobalStrTable) {
+func SharedDeepReferenceAnalysis(files []string) (globalStrTable GlobalStrTable, err error) {
 	fileChan := make(chan string, 100)
 	binChan := make(chan *Binary, len(files))
 	binaries := []*Binary{}
@@ -31,21 +32,26 @@ func SharedDeepReferenceAnalysis(files []string) (globalStrTable GlobalStrTable)
 
 	totalBinaries := uint(len(binaries))
 
+	if totalBinaries == 0 {
+		err = errors.New("no valid binary was found")
+		return
+	}
 	//	Filter
 	var wait sync.WaitGroup = sync.WaitGroup{}
 
 	for _, bin := range binaries {
 		wait.Add(1)
-		go func() {
+		go func(binary *Binary) {
 			defer wait.Done()
-			for name := range bin.strTable {
+			for name := range binary.strTable {
 				mutex.Lock()
-				if refCounter, found := globalStrTable[name]; !found || refCounter.hits != totalBinaries {
+				refCounter, found := globalStrTable[name]
+				if !found || refCounter.hits != totalBinaries {
 					delete(globalStrTable, name)
 				}
 				mutex.Unlock()
 			}
-		}()
+		}(bin)
 	}
 
 	wait.Wait()
@@ -72,10 +78,8 @@ func binWorker(files <-chan string, binary chan<- *Binary, globalStrTable Global
 				refCounter.Instructions = append(refCounter.Instructions, references.Instructions...)
 				globalStrTable[name] = refCounter
 			} else {
-				globalStrTable[name] = RefCounter{
-					hits:         1,
-					Instructions: references.Instructions,
-				}
+				references.hits = 1
+				globalStrTable[name] = references
 			}
 			mutex.Unlock()
 		}

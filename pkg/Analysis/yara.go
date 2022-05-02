@@ -25,6 +25,8 @@ rule %s {
 }
 `
 
+const MAX_STRING_SIZE = 128
+
 // Yara basic formater
 func FormatToYara(rulename string, strs YaraString) string {
 	if len(strs) == 0 {

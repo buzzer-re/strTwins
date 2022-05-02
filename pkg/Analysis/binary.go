@@ -3,6 +3,7 @@ package analysis
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/radareorg/r2pipe-go"
 )
@@ -38,9 +39,9 @@ func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 
 	// Get all string flags
 	strFlags := []Flag{}
-	err = bin.pipe.CmdjStruct("fs strings; fj", &strFlags)
+	bin.pipe.CmdjStruct("fs strings; fj", &strFlags)
 
-	if err != nil {
+	if len(strFlags) == 0 {
 		err = errors.New(fmt.Sprintf("%s does not have any reacheable string", bin.filename))
 		return
 	}
@@ -50,10 +51,16 @@ func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 		wide := false
 		strValue, _ := bin.pipe.Cmdf("ps @ %s", strFlag.Name)
 		if len(strValue) == 1 {
-			// Wide
+			// Maybe wide
 			strValue, _ = bin.pipe.Cmdf("psw @ %s", strFlag.Name)
 			wide = true
 		}
+
+		// Check if string is valid by checking if comes with \x<byte>
+		if strings.Contains(strValue, "\\x") || len(strValue) == 0 {
+			continue
+		}
+
 		references := []Reference{}
 		// rawJson, _ := bin.pipe.Cmdf("psj @ %s", strFlag.Name)
 
@@ -113,5 +120,5 @@ func (bin *Binary) GetDisasmAt(address uint64) (disasm string) {
 }
 
 func (bin *Binary) String() string {
-	return bin.strTable.Format(bin.OutputFormat)
+	return bin.strTable.String()
 }
