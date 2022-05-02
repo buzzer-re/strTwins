@@ -1,3 +1,5 @@
 *.json
+tests/
 teste*
 strTwins
+TODO

@@ -10,7 +10,8 @@ import (
 )
 
 type Arguments struct {
-	Format string
+	Format       string
+	YaraRuleName string
 }
 
 var arguments Arguments = Arguments{}
@@ -44,7 +45,7 @@ var cmd = &cobra.Command{
 			var globalStrTable analysis.GlobalStrTable = analysis.SharedDeepReferenceAnalysis(args)
 
 			if len(globalStrTable) > 0 {
-				fmt.Println(globalStrTable)
+				fmt.Println(globalStrTable.Format(arguments.Format))
 			} else {
 				fmt.Println("No shared string was found!")
 			}
@@ -58,5 +59,5 @@ func Execute() {
 }
 
 func init() {
-	cmd.Flags().StringVarP(&arguments.Format, "format", "f", "text", "Format to output, available are: json, yaml, text and Yara")
+	cmd.Flags().StringVarP(&arguments.Format, "format", "f", "yaml", "Format to output, available are: json, yaml and Yara!")
 }

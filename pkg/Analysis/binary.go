@@ -1,12 +1,10 @@
 package analysis
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/radareorg/r2pipe-go"
-	"gopkg.in/yaml.v2"
 )
 
 // A struct that will hold the pipe between r2
@@ -14,8 +12,9 @@ import (
 type Binary struct {
 	filename     string
 	path         string
+	filehash     string
 	pipe         *r2pipe.Pipe
-	stringRefs   []StringReference
+	strTable     GlobalStrTable
 	OutputFormat string
 }
 
@@ -27,6 +26,7 @@ func NewBinary(filename string) (binary *Binary, err error) {
 
 	// TODO: Fix NativePipe in concurrent execution
 	binary.pipe, err = r2pipe.NewPipe(filename)
+	binary.strTable = make(GlobalStrTable)
 
 	return
 }
@@ -47,8 +47,15 @@ func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 
 	// Get all references and string values
 	for _, strFlag := range strFlags {
+		wide := false
 		strValue, _ := bin.pipe.Cmdf("ps @ %s", strFlag.Name)
+		if len(strValue) == 1 {
+			// Wide
+			strValue, _ = bin.pipe.Cmdf("psw @ %s", strFlag.Name)
+			wide = true
+		}
 		references := []Reference{}
+		// rawJson, _ := bin.pipe.Cmdf("psj @ %s", strFlag.Name)
 
 		bin.pipe.CmdjfStruct("axtj @ %s", &references, strFlag.Name)
 
@@ -74,11 +81,10 @@ func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 			}
 
 			if len(codeReferences) > 0 {
-				strRef := StringReference{
-					String:     strValue,
-					References: codeReferences,
+				bin.strTable[strValue] = RefCounter{
+					Instructions: codeReferences,
+					WideString:   wide,
 				}
-				bin.stringRefs = append(bin.stringRefs, strRef)
 			}
 		}
 
@@ -106,20 +112,6 @@ func (bin *Binary) GetDisasmAt(address uint64) (disasm string) {
 
 }
 
-func (bin *Binary) String() (out string) {
-	out = fmt.Sprintf("Invalid output format specified %s\n", bin.OutputFormat)
-
-	switch bin.OutputFormat {
-	case "json":
-		bytes, _ := json.Marshal(bin.stringRefs)
-		out = string(bytes)
-	case "yaml":
-		bytes, _ := yaml.Marshal(bin.stringRefs)
-		out = string(bytes)
-
-		// TODO: yara and text
-
-	}
-
-	return
+func (bin *Binary) String() string {
+	return bin.strTable.Format(bin.OutputFormat)
 }
