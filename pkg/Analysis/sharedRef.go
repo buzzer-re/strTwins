@@ -41,16 +41,17 @@ func SharedDeepReferenceAnalysis(files []string) (globalStrTable GlobalStrTable,
 
 	for _, bin := range binaries {
 		wait.Add(1)
-		go func() {
+		go func(binary *Binary) {
 			defer wait.Done()
-			for name := range bin.strTable {
+			for name := range binary.strTable {
 				mutex.Lock()
-				if refCounter, found := globalStrTable[name]; !found || refCounter.hits != totalBinaries {
+				refCounter, found := globalStrTable[name]
+				if !found || refCounter.hits != totalBinaries {
 					delete(globalStrTable, name)
 				}
 				mutex.Unlock()
 			}
-		}()
+		}(bin)
 	}
 
 	wait.Wait()

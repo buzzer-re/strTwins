@@ -3,6 +3,7 @@ package analysis
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/radareorg/r2pipe-go"
 )
@@ -54,6 +55,12 @@ func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 			strValue, _ = bin.pipe.Cmdf("psw @ %s", strFlag.Name)
 			wide = true
 		}
+
+		// Check if string is valid by checking if comes with \x<byte>
+		if strings.Contains(strValue, "\\x") {
+			continue
+		}
+
 		references := []Reference{}
 		// rawJson, _ := bin.pipe.Cmdf("psj @ %s", strFlag.Name)
 
