@@ -113,5 +113,5 @@ func (bin *Binary) GetDisasmAt(address uint64) (disasm string) {
 }
 
 func (bin *Binary) String() string {
-	return bin.strTable.Format(bin.OutputFormat)
+	return bin.strTable.String()
 }

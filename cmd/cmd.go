@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 	"strings"
 
 	analysis "github.com/aandersonl/strTwins/pkg/Analysis"
@@ -26,7 +27,8 @@ var cmd = &cobra.Command{
 			cmd.Help()
 			return
 		}
-
+		analysis.FmtType = strings.ToLower(arguments.Format)
+		analysis.YaraRuleName = arguments.YaraRuleName
 		if len(args) == 1 {
 			log.Println("Just one file has detected, extracting all the references..")
 			target := args[0]
@@ -34,8 +36,9 @@ var cmd = &cobra.Command{
 			binary, _ := analysis.NewBinary(target)
 			binary.DeepReferenceAnalysis(true)
 
-			binary.OutputFormat = arguments.Format
-			arguments.Format = strings.ToLower(arguments.Format)
+			if analysis.YaraRuleName == "" {
+				analysis.YaraRuleName = "Gen_" + filepath.Base(target)
+			}
 
 			fmt.Println(binary)
 
@@ -44,8 +47,13 @@ var cmd = &cobra.Command{
 			log.Printf("Starting analysis of %d files...", len(args))
 			var globalStrTable analysis.GlobalStrTable = analysis.SharedDeepReferenceAnalysis(args)
 
+			if analysis.YaraRuleName == "" {
+				log.Println("No yara rule name provided!")
+				analysis.YaraRuleName = "Gen_Shared_Str_Ref"
+			}
+
 			if len(globalStrTable) > 0 {
-				fmt.Println(globalStrTable.Format(arguments.Format))
+				fmt.Println(globalStrTable)
 			} else {
 				fmt.Println("No shared string was found!")
 			}
@@ -60,4 +68,5 @@ func Execute() {
 
 func init() {
 	cmd.Flags().StringVarP(&arguments.Format, "format", "f", "yaml", "Format to output, available are: json, yaml and Yara!")
+	cmd.Flags().StringVarP(&arguments.YaraRuleName, "rulename", "n", "", "Yara rule name, if was choosen as format output!")
 }

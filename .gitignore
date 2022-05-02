@@ -3,3 +3,4 @@ tests/
 teste*
 strTwins
 TODO
+*.yara
