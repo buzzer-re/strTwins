@@ -41,20 +41,13 @@ var cmd = &cobra.Command{
 			return
 		} else {
 			log.Printf("Starting analysis of %d files...", len(args))
-			// Run the deep reference analysis concurrently on more than one file
-			// returns a array of Binaries
-			var binaries []*analysis.Binary = analysis.ConcurrentDeepReferenceAnalysis(args)
+			var globalStrTable analysis.GlobalStrTable = analysis.SharedDeepReferenceAnalysis(args)
 
-			log.Println("Computing shared references...")
-			// Normalzier
-			var sharedReferences analysis.SharedReference = analysis.BuildSharedReferences(binaries)
-			fmt.Println(sharedReferences)
-
-			// for _, binary := range binaries {
-			// 	binary.OutputFormat = arguments.Format
-			// 	fmt.Println(binary)
-			// }
-
+			if len(globalStrTable) > 0 {
+				fmt.Println(globalStrTable)
+			} else {
+				fmt.Println("No shared string was found!")
+			}
 		}
 
 	},

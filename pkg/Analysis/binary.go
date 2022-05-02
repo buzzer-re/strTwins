@@ -64,6 +64,7 @@ func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 			for _, reference := range references {
 				if reference.Type != "CODE" && reference.Opcode != "invalid" {
 					codeReferences = append(codeReferences, BasicInstruction{
+						Filename:      bin.filename,
 						Offset:        reference.From,
 						ContextDisasm: reference.Opcode,
 						FuncOffset:    reference.FcnAddr,

@@ -47,6 +47,7 @@ type Instruction struct {
 
 // Simplified struct to hold strTwins asm instructions
 type BasicInstruction struct {
+	Filename      string
 	ContextDisasm string
 	Disasm        string
 	Offset        uint64
