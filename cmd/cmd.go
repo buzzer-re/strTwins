@@ -33,8 +33,16 @@ var cmd = &cobra.Command{
 			log.Println("Just one file has detected, extracting all the references..")
 			target := args[0]
 
-			binary, _ := analysis.NewBinary(target)
-			binary.DeepReferenceAnalysis(true)
+			binary, err := analysis.NewBinary(target)
+			if err != nil {
+				log.Fatalf("Unable to open %s!\n", target)
+			}
+
+			err = binary.DeepReferenceAnalysis(true)
+
+			if err != nil {
+				log.Fatalf("Error on analysis: %v!\n", err)
+			}
 
 			if analysis.YaraRuleName == "" {
 				analysis.YaraRuleName = "Gen_" + filepath.Base(target)
@@ -45,7 +53,13 @@ var cmd = &cobra.Command{
 			return
 		} else {
 			log.Printf("Starting analysis of %d files...", len(args))
-			var globalStrTable analysis.GlobalStrTable = analysis.SharedDeepReferenceAnalysis(args)
+			globalStrTable, err := analysis.SharedDeepReferenceAnalysis(args)
+
+			if err != nil {
+				log.Fatalf("Error: %v!\n", err)
+				return
+			}
+			// if
 
 			if analysis.YaraRuleName == "" {
 				log.Println("No yara rule name provided!")

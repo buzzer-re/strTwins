@@ -1,11 +1,12 @@
 package analysis
 
 import (
+	"errors"
 	"sync"
 )
 
 // Concurrently call the DeepReference analysis in each binary
-func SharedDeepReferenceAnalysis(files []string) (globalStrTable GlobalStrTable) {
+func SharedDeepReferenceAnalysis(files []string) (globalStrTable GlobalStrTable, err error) {
 	fileChan := make(chan string, 100)
 	binChan := make(chan *Binary, len(files))
 	binaries := []*Binary{}
@@ -31,6 +32,10 @@ func SharedDeepReferenceAnalysis(files []string) (globalStrTable GlobalStrTable)
 
 	totalBinaries := uint(len(binaries))
 
+	if totalBinaries == 0 {
+		err = errors.New("no valid binary was found")
+		return
+	}
 	//	Filter
 	var wait sync.WaitGroup = sync.WaitGroup{}
 

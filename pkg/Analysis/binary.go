@@ -38,9 +38,9 @@ func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 
 	// Get all string flags
 	strFlags := []Flag{}
-	err = bin.pipe.CmdjStruct("fs strings; fj", &strFlags)
+	bin.pipe.CmdjStruct("fs strings; fj", &strFlags)
 
-	if err != nil {
+	if len(strFlags) == 0 {
 		err = errors.New(fmt.Sprintf("%s does not have any reacheable string", bin.filename))
 		return
 	}
