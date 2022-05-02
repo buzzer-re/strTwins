@@ -78,10 +78,8 @@ func binWorker(files <-chan string, binary chan<- *Binary, globalStrTable Global
 				refCounter.Instructions = append(refCounter.Instructions, references.Instructions...)
 				globalStrTable[name] = refCounter
 			} else {
-				globalStrTable[name] = RefCounter{
-					hits:         1,
-					Instructions: references.Instructions,
-				}
+				references.hits = 1
+				globalStrTable[name] = references
 			}
 			mutex.Unlock()
 		}

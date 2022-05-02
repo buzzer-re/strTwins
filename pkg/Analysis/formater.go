@@ -20,13 +20,19 @@ func (gtable GlobalStrTable) String() (out string) {
 		out = string(bytes)
 	case "yara":
 		var yaraStrings YaraString = make(YaraString)
+		var stringSize int
 		for name, info := range gtable {
 			modifiers := []string{}
 			if info.WideString {
 				modifiers = append(modifiers, "wide")
 			}
+			stringSize = len(name)
+			if stringSize > MAX_STRING_SIZE {
+				yaraStrings[name[:MAX_STRING_SIZE]] = modifiers
+			} else {
+				yaraStrings[name] = modifiers
+			}
 
-			yaraStrings[name] = modifiers
 		}
 		out = FormatToYara(YaraRuleName, yaraStrings)
 	}

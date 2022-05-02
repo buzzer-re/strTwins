@@ -51,13 +51,13 @@ func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 		wide := false
 		strValue, _ := bin.pipe.Cmdf("ps @ %s", strFlag.Name)
 		if len(strValue) == 1 {
-			// Wide
+			// Maybe wide
 			strValue, _ = bin.pipe.Cmdf("psw @ %s", strFlag.Name)
 			wide = true
 		}
 
 		// Check if string is valid by checking if comes with \x<byte>
-		if strings.Contains(strValue, "\\x") {
+		if strings.Contains(strValue, "\\x") || len(strValue) == 0 {
 			continue
 		}
 
