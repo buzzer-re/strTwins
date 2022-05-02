@@ -24,14 +24,16 @@ func NewBinary(filename string) (binary *Binary, err error) {
 	binary = &Binary{
 		filename: filename,
 	}
+
+	// TODO: Fix NativePipe in concurrent execution
 	binary.pipe, err = r2pipe.NewPipe(filename)
 
 	return
 }
 
-// Search all string references inside the code
+// Search all string references inside the code and
 // build a reference table and a string table
-func (bin *Binary) DeepReferenceAnalysis() (err error) {
+func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 	bin.pipe.Cmd("aaa")
 
 	// Get all string flags
@@ -80,6 +82,13 @@ func (bin *Binary) DeepReferenceAnalysis() (err error) {
 		}
 
 	}
+
+	// Close pipe after analysis, useful when we are dealing with a lot of files
+	// to leave open a bunch of r2 sessions opened
+	if closePipe {
+		bin.pipe.Close()
+	}
+
 	return
 }
 
@@ -97,6 +106,8 @@ func (bin *Binary) GetDisasmAt(address uint64) (disasm string) {
 }
 
 func (bin *Binary) String() (out string) {
+	out = fmt.Sprintf("Invalid output format specified %s\n", bin.OutputFormat)
+
 	switch bin.OutputFormat {
 	case "json":
 		bytes, _ := json.Marshal(bin.stringRefs)

@@ -44,3 +44,11 @@ type Instruction struct {
 		Type string `json:"type"`
 	} `json:"xrefs"`
 }
+
+// Simplified struct to hold strTwins asm instructions
+type BasicInstruction struct {
+	ContextDisasm string
+	Disasm        string
+	Offset        uint64
+	FuncOffset    uint64
+}

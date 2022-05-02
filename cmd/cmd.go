@@ -21,30 +21,42 @@ var cmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// TODO: Improve code
+		if len(args) == 0 {
+			cmd.Help()
+			return
+		}
+
 		if len(args) == 1 {
 			log.Println("Just one file has detected, extracting all the references..")
 			target := args[0]
 
 			binary, _ := analysis.NewBinary(target)
-			binary.DeepReferenceAnalysis()
+			binary.DeepReferenceAnalysis(true)
 
-			binary.OutputFormat = "text"
+			binary.OutputFormat = arguments.Format
 			arguments.Format = strings.ToLower(arguments.Format)
-			switch arguments.Format {
-			case "json":
-				binary.OutputFormat = arguments.Format
-			case "yaml":
-				binary.OutputFormat = arguments.Format
-			case "yara":
-				binary.OutputFormat = arguments.Format
-			}
 
 			fmt.Println(binary)
 
 			return
+		} else {
+			log.Printf("Starting analysis of %d files...", len(args))
+			// Run the deep reference analysis concurrently on more than one file
+			// returns a array of Binaries
+			var binaries []*analysis.Binary = analysis.ConcurrentDeepReferenceAnalysis(args)
+
+			log.Println("Computing shared references...")
+			// Normalzier
+			var sharedReferences analysis.SharedReference = analysis.BuildSharedReferences(binaries)
+			fmt.Println(sharedReferences)
+
+			// for _, binary := range binaries {
+			// 	binary.OutputFormat = arguments.Format
+			// 	fmt.Println(binary)
+			// }
+
 		}
 
-		cmd.Help()
 	},
 }
 
