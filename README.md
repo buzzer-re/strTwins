@@ -94,6 +94,9 @@ Flags:
 
 Let's use `strTwins` between 2 emotet samples and output in json and Yara:
 
+
+### JSON output
+
 `$ strTwins tests/emotet/* -f json`
 
 ```json
@@ -157,6 +160,8 @@ Let's use `strTwins` between 2 emotet samples and output in json and Yara:
  }
 }
 ```
+
+### Yara output
 
 `$ strTwins tests/emotet/* -f yara -n emotet_dummy_rule`
 
