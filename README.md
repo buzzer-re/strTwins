@@ -6,10 +6,10 @@ StrTwins is a binary analysis tool, powered by radare, that is capable to find s
 
 Code string references refer to direct access in the binary code to the string address itself, that's is great filter to detect which visibile strings are actually used inside the software.
 
-So, in other words it means that `strTwins` will look *only* strings that are actually used by the software itself and compute every ocurrencies in all arguments and output only `shared` string between them
+So, in other words it means that `strTwins` will look *only* strings that are actually used by the software itself and compute every ocurrencies in all arguments and output only `shared` string between them.
 
 
-## Example 
+## How this works in practice 
 
 Consider this simple two programs:
 
@@ -47,10 +47,28 @@ https://google.com:
     funcoffset: 4294983536
 ```
 
-The default output is `YAML`, so here you can see that `https://google.com` is a shared string reference between `prog1` and `prog2`
+The default output is `YAML`, so here you can see that `https://google.com` is a shared string reference between `prog1` and `prog2` and also you can see what instruction refer to the string address in two formats, a `context assembly` which will replace the string location with a string symbol, `str.https:__google.com`, and a `disasm` that will display the raw asm code in the reference address.
 
+If the reference happens inside a function, it will display the function address in the `funcoffset` key. 
 
-The output is not limited only to YAML, you can easily choose between `json` and `Yara`
+The output is not limited only to YAML, you can easily choose between `json` and `Yara`!
+
+## Usage
+
+You can easily see the use by passing `-h` in the command line:
+
+```
+$ ./strTwins -h
+Discover shared string references between binaries and output in a variety formats!
+
+Usage:
+  strTwins file1, file2... [flags]
+
+Flags:
+  -f, --format string     Format to output, available are: json, yaml and Yara! (default "yaml")
+  -h, --help              help for strTwins
+  -n, --rulename string   Yara rule name, if was choosen as format output!
+```
 
 
 ## Example: Emotet malware
@@ -136,28 +154,34 @@ rule emotet_dummy_rule {
 }
 ```
 
-
-
-# Options
-
-You can easily see the use by passing `-h` in the command line:
-
-```
-$ ./strTwins -h
-Discover shared string references between binaries and output in a variety formats!
-
-Usage:
-  strTwins file1, file2... [flags]
-
-Flags:
-  -f, --format string     Format to output, available are: json, yaml and Yara! (default "yaml")
-  -h, --help              help for strTwins
-  -n, --rulename string   Yara rule name, if was choosen as format output!
-```
+*DISCLAIMER: The `yara` format option is a naive output, don't trust your rules to only this attributes, consider strTwins a helper tool to work with a large dataset of malware.* 
 
 
 # Installing
 
+The current version were just tested only on Linux and macOS, but it's possible to compile from source to another system.
+
+In order to use strTwins, you will need to have [radare2](https://github.com/radareorg/radare2) installed in your machine.
+
+## From release
+You can just go the [Releases](https://github.com/AandersonL/strTwins/releases) page and grab the binary for your system!
+
+## Compiling from source
+
+As it's written in golang, it's very simple to compile, just type
+
+`go get github.com/AandersonL/strTwins`
+
+And if your `PATH` variable points to your `$GOPATH/bin` directory, you can start use by calling
+
+`$ strTwins -h`
+
+
+# Conclusion
+
+This is a experimental tool, if you find any errors and have ideas for code improvements/new features, feel free to open a PR! 
+
+Thanks.
 
 
 
