@@ -8,6 +8,25 @@ Code string references refer to direct access in the binary code to the string a
 
 So, in other words it means that `strTwins` will look *only* strings that are actually used by the software itself and compute every ocurrencies in all arguments and output only `shared` string between them.
 
+# Installing
+
+The current version were just tested only on Linux and macOS, but it's possible to compile from source to another system. 
+
+*In order to use strTwins, you will need to have [radare2](https://github.com/radareorg/radare2) installed in your machine.*
+
+### From release
+You can just go the [Releases](https://github.com/AandersonL/strTwins/releases) page and grab the binary for your system!
+
+### Compiling from source
+
+As it's written in golang, it's very simple to compile with just:
+
+`go get github.com/AandersonL/strTwins`
+
+And if your `PATH` variable points to your `$GOPATH/bin` directory, you can start use by calling
+
+`$ strTwins -h`
+
 
 ## How this works in practice 
 
@@ -157,24 +176,6 @@ rule emotet_dummy_rule {
 *DISCLAIMER: The `yara` format option is a naive output, don't trust your rules to only this attributes, consider strTwins a helper tool to work with a large dataset of malware.* 
 
 
-# Installing
-
-The current version were just tested only on Linux and macOS, but it's possible to compile from source to another system.
-
-In order to use strTwins, you will need to have [radare2](https://github.com/radareorg/radare2) installed in your machine.
-
-## From release
-You can just go the [Releases](https://github.com/AandersonL/strTwins/releases) page and grab the binary for your system!
-
-## Compiling from source
-
-As it's written in golang, it's very simple to compile, just type
-
-`go get github.com/AandersonL/strTwins`
-
-And if your `PATH` variable points to your `$GOPATH/bin` directory, you can start use by calling
-
-`$ strTwins -h`
 
 
 # Conclusion
