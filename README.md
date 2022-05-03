@@ -1,6 +1,6 @@
 # StrTwins
 
-StrTwins is a binary analysis tool that is capable to find shared code string references between executables and output in JSON, YAML and Yara. 
+StrTwins is a binary analysis tool, powered by radare, that is capable to find shared code string references between executables and output in JSON, YAML and Yara. 
 
 ## How this works
 
@@ -55,21 +55,15 @@ The output is not limited only to YAML, you can easily choose between `json` and
 
 ## Example: Emotet malware
 
-Let's use `strTwins` between 2 emotets samples and output in json and Yara:
+Let's use `strTwins` between 2 emotet samples and output in json and Yara:
 
-> strTwins tests/emotet/* -f json
+`$ strTwins tests/emotet/* -f json`
+
 ```json
 {
  "GradientFill": {
   "WideString": false,
   "Instructions": [
-   {
-    "Filename": "tests/emotet/000b0cf537e46c5a93de8ec4672450772d247ea5417692a35ef314679f1d4f4d2",
-    "ContextDisasm": "push str.GradientFill",
-    "Disasm": "push 0x40502c",
-    "Offset": 4198430,
-    "FuncOffset": 4198400
-   },
    {
     "Filename": "tests/emotet/87ea8dd7b7e6805738bc4f31778cc37932f4da9615d215b855bde087eb02b547",
     "ContextDisasm": "push str.GradientFill",
@@ -90,13 +84,6 @@ Let's use `strTwins` between 2 emotets samples and output in json and Yara:
   "WideString": false,
   "Instructions": [
    {
-    "Filename": "tests/emotet/000b0cf537e46c5a93de8ec4672450772d247ea5417692a35ef314679f1d4f4d2",
-    "ContextDisasm": "mov esi, str.bMgBo2S1KiV5n28Si20fM4KZ_dy__nCMnTQJLcE4bJ_A8DSZne4pTXEJ__PfX3mKBgvXa",
-    "Disasm": "mov esi, 0x4058c8",
-    "Offset": 4205772,
-    "FuncOffset": 0
-   },
-   {
     "Filename": "tests/emotet/87ea8dd7b7e6805738bc4f31778cc37932f4da9615d215b855bde087eb02b547",
     "ContextDisasm": "mov esi, str.bMgBo2S1KiV5n28Si20fM4KZ_dy__nCMnTQJLcE4bJ_A8DSZne4pTXEJ__PfX3mKBgvXa",
     "Disasm": "mov esi, 0x4058c8",
@@ -116,13 +103,6 @@ Let's use `strTwins` between 2 emotets samples and output in json and Yara:
   "WideString": false,
   "Instructions": [
    {
-    "Filename": "tests/emotet/000b0cf537e46c5a93de8ec4672450772d247ea5417692a35ef314679f1d4f4d2",
-    "ContextDisasm": "push str.msimg32.dll",
-    "Disasm": "push 0x405020",
-    "Offset": 4198414,
-    "FuncOffset": 4198400
-   },
-   {
     "Filename": "tests/emotet/87ea8dd7b7e6805738bc4f31778cc37932f4da9615d215b855bde087eb02b547",
     "ContextDisasm": "push str.msimg32.dll",
     "Disasm": "push 0x405020",
@@ -141,7 +121,7 @@ Let's use `strTwins` between 2 emotets samples and output in json and Yara:
 }
 ```
 
-> strTwins tests/emotet/* -f yara -n emotet_dummy_rule
+`$ strTwins tests/emotet/* -f yara -n emotet_dummy_rule`
 
 ```yara
 rule emotet_dummy_rule {
@@ -154,7 +134,30 @@ rule emotet_dummy_rule {
 	condition:
 		all of them
 }
-
-------
 ```
+
+
+
+# Options
+
+You can easily see the use by passing `-h` in the command line:
+
+```
+$ ./strTwins -h
+Discover shared string references between binaries and output in a variety formats!
+
+Usage:
+  strTwins file1, file2... [flags]
+
+Flags:
+  -f, --format string     Format to output, available are: json, yaml and Yara! (default "yaml")
+  -h, --help              help for strTwins
+  -n, --rulename string   Yara rule name, if was choosen as format output!
+```
+
+
+# Installing
+
+
+
 
