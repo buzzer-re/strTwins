@@ -1,6 +1,6 @@
 *.json
 tests/
 teste*
-strTwins
+strTwins*
 TODO
 *.yara
