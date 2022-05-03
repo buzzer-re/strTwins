@@ -17,7 +17,10 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.18
-
+  
+    - name: Setup radare
+      run: git clone https://github.com/radareorg/radare2.git && radare2/sys/install.sh
+      
     - name: Build
       run: go build -v ./...
 
