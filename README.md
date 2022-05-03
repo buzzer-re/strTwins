@@ -1,6 +1,6 @@
 # StrTwins
 
-[![strTwinsCI](https://github.com/AandersonL/strTwins/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/AandersonL/strTwins/actions/workflows/go.yml)
+[![strTwinsCI](https://github.com/AandersonL/strTwins/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/AandersonL/strTwins/actions/workflows/ci.yml)
 
 StrTwins is a binary analysis tool, powered by radare, that is capable to find shared code string references between executables and output in JSON, YAML and Yara. 
 
