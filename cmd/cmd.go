@@ -61,7 +61,7 @@ var cmd = &cobra.Command{
 			}
 			// if
 
-			if analysis.YaraRuleName == "" {
+			if analysis.YaraRuleName == "" && analysis.FmtType == "yara" {
 				log.Println("No yara rule name provided!")
 				analysis.YaraRuleName = "Gen_Shared_Str_Ref"
 			}
