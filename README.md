@@ -184,6 +184,18 @@ rule emotet_dummy_rule {
 
 
 
+## Known errors
+
+`error while loading shared libraries: libr_core.so: cannot open shared object file: No such file or directory`
+
+This happens because `r2` install it's libraries inside `/usr/local/lib` on *nix systems, so if your system is not load libraries by it's path you need to add the following line in `/etc/ld.so.conf`:
+
+>/usr/local/lib
+
+And then, rebuild the shared object cache:
+
+>sudo ldconfig
+
 
 # Conclusion
 
