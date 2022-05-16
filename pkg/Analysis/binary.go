@@ -16,6 +16,7 @@ type Binary struct {
 	filehash     string
 	pipe         *r2pipe.Pipe
 	strTable     GlobalStrTable
+	NumRefs      int
 	OutputFormat string
 }
 
@@ -30,6 +31,10 @@ func NewBinary(filename string) (binary *Binary, err error) {
 	binary.strTable = make(GlobalStrTable)
 
 	return
+}
+
+func (bin *Binary) Close() {
+	bin.pipe.Close()
 }
 
 // Search all string references inside the code and
@@ -96,7 +101,7 @@ func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
 		}
 
 	}
-
+	bin.NumRefs = len(bin.strTable)
 	// Close pipe after analysis, useful when we are dealing with a lot of files
 	// to leave open a bunch of r2 sessions opened
 	if closePipe {

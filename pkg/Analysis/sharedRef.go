@@ -2,19 +2,25 @@ package analysis
 
 import (
 	"errors"
+	"runtime"
 	"sync"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 // Concurrently call the DeepReference analysis in each binary
 func SharedDeepReferenceAnalysis(files []string) (globalStrTable GlobalStrTable, err error) {
-	fileChan := make(chan string, 100)
-	binChan := make(chan *Binary, len(files))
+	numRoutines := runtime.NumCPU()
+	numFiles := len(files)
+	bar := progressbar.Default(int64(numFiles))
+	fileChan := make(chan string, numRoutines)
+	binChan := make(chan *Binary, numFiles)
 	binaries := []*Binary{}
 	globalStrTable = make(GlobalStrTable)
 
 	var mutex sync.Mutex = sync.Mutex{}
-	for i := 0; i < 100; i++ {
-		go binWorker(fileChan, binChan, globalStrTable, &mutex)
+	for i := 0; i < numRoutines; i++ {
+		go binWorker(fileChan, binChan, globalStrTable, &mutex, bar)
 	}
 
 	for _, file := range files {
@@ -59,10 +65,16 @@ func SharedDeepReferenceAnalysis(files []string) (globalStrTable GlobalStrTable,
 }
 
 // Open, analyse the binary and compute shared string references in code
-func binWorker(files <-chan string, binary chan<- *Binary, globalStrTable GlobalStrTable, mutex *sync.Mutex) {
+func binWorker(files <-chan string, binary chan<- *Binary, globalStrTable GlobalStrTable, mutex *sync.Mutex, bar *progressbar.ProgressBar) {
 	for f := range files {
-		bin, _ := NewBinary(f)
-		err := bin.DeepReferenceAnalysis(true)
+		binary <- nil
+		bin, err := NewBinary(f)
+		if err != nil {
+			binary <- nil
+			continue
+		}
+
+		err = bin.DeepReferenceAnalysis(true)
 		if err != nil {
 			binary <- nil
 			continue
@@ -84,6 +96,8 @@ func binWorker(files <-chan string, binary chan<- *Binary, globalStrTable Global
 			mutex.Unlock()
 		}
 
+		// Not using defer here because we are inside a for loop
+		bar.Add(1)
 		binary <- bin
 	}
 }
