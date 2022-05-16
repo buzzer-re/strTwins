@@ -48,9 +48,12 @@ var cmd = &cobra.Command{
 				analysis.YaraRuleName = "Gen_" + filepath.Base(target)
 			}
 
-			fmt.Println(binary)
+			if binary.NumRefs == 0 {
+				log.Println("No string references were found in this file!")
+				return
+			}
 
-			return
+			fmt.Println(binary)
 		} else {
 			log.Printf("Starting analysis of %d files...", len(args))
 			globalStrTable, err := analysis.SharedDeepReferenceAnalysis(args)
