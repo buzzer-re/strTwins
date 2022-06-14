@@ -40,7 +40,7 @@ func (bin *Binary) Close() {
 // Search all string references inside the code and
 // build a reference table and a string table
 func (bin *Binary) DeepReferenceAnalysis(closePipe bool) (err error) {
-	bin.pipe.Cmd("aaa")
+	bin.pipe.Cmd("aac; /ra") // Search functions and references only, don't need to analyse the whole binary
 
 	// Get all string flags
 	strFlags := []Flag{}
